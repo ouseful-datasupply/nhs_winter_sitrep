@@ -11,6 +11,8 @@ The data tables are simple long form and unnormalised.
 
 An easy way of querying the database via a browser is to use [*Franchise*](https://blog.ouseful.info/2017/09/25/asking-questions-of-csv-data-in-the-browser-with-franchise/).
 
+See the database running as a [datasette](https://github.com/simonw/datasette) at: [https://ousefulnhsdata.herokuapp.com/](https://ousefulnhsdata.herokuapp.com/)
+
 ## Installation
 
 `pip install --upgrade --no-deps git+https://github.com/ouseful-datasupply/nhs_winter_sitrep.git`
