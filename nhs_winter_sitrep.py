@@ -114,30 +114,28 @@ def get_report(xl,sheet):
     
 
 def sqlise_sitrep(url, conn, table):
-	try:
-		xl=DailySR_read(url)
-		reports = [n for n in  xl.sheet_names if n !='Macro1']
+    try:
+        xl=DailySR_read(url)
+        reports = [n for n in  xl.sheet_names if n !='Macro1']
 
-		df= pd.DataFrame()
-		for reportname in reports:
-			report = get_report(xl,reportname)
-			report.to_sql(table, conn, index=False, if_exists='append')
-	except: pass
+        for reportname in reports:
+            report = get_report(xl,reportname)
+            report.to_sql(table, conn, index=False, if_exists='append')
+    except: pass
 
 def sqlise_sitrep_nhs111(url, conn, table):
-	try:
-		xl=DailySR_read(url)
-		reports = [n for n in  xl.sheet_names]
-		df= pd.DataFrame()
-		for reportname in reports:
-			report =  dailySR_NHS111_parse(xl,reportname)
-			report.to_sql(table, conn, index=False, if_exists='append')
-	except: pass
+    try:
+        xl=DailySR_read(url)
+        reports = [n for n in  xl.sheet_names]
+        for reportname in reports:
+            report = dailySR_NHS111_parse(xl,reportname)
+            report.to_sql(table, conn, index=False, if_exists='append')
+    except: pass
 
 def droptable(conn,table):
-	cursor = conn.cursor()
-	cursor.execute('''DROP TABLE IF EXISTS {}'''.format(table))
-	conn.commit()
+    cursor = conn.cursor()
+    cursor.execute('''DROP TABLE IF EXISTS {}'''.format(table))
+    conn.commit()
 
 def _getLinksFromPage(url):
     
@@ -157,21 +155,21 @@ def links_winter_sitrep_2017_18(url='https://www.england.nhs.uk/statistics/stati
     return _getLinksFromPage(url)
 
 def get_url_winter_sitrep_2017_18(typ, links=None):
-	if links is None:
-		links = links_winter_sitrep_2017_18()
-	
-	filetype='xlsx'
-	reps = {'winter_sitrep':'Acute Time series', 'winter_sitrep_nhs111':'NHS111 Time series'}
-	if typ not in reps: 
-		display("I don't recognise that type: {}".format(typ))
-		return None, None
-	
-	for link in links:
-		if link['href'].endswith('.{filetype}'.format(filetype=filetype)):
-			if 'Winter SitRep'.lower() in link.text.lower() and reps[typ].lower() in link.text.lower():
-				display('Grabbing data for {}'.format(link.text))
-				return(link.text, link['href'])
-	return None, None
+    if links is None:
+        links = links_winter_sitrep_2017_18()
+
+    filetype='xlsx'
+    reps = {'winter_sitrep':'Acute Time series', 'winter_sitrep_nhs111':'NHS111 Time series'}
+    if typ not in reps: 
+        display("\nI don't recognise that type: {}".format(typ))
+        return None, None
+
+    for link in links:
+        if link['href'].endswith('.{filetype}'.format(filetype=filetype)):
+            if 'Winter SitRep'.lower() in link.text.lower() and reps[typ].lower() in link.text.lower():
+                display('\nGrabbing data for {}'.format(link.text))
+                return(link.text, link['href'])
+    return None, None
                 
 @click.command()
 @click.option('--dbname', default='nhs_sitrepdb.db',  help='SQLite database name')
@@ -179,23 +177,23 @@ def get_url_winter_sitrep_2017_18(typ, links=None):
 @click.option('--sitreptable',default='sitrep', help='Winter sitrep db table name')
 @click.option('--sitrep111url', default=None, help='NHS111 Winter sitrep URL')
 @click.option('--sitrep111table',default='nhs111', help='Winter sitrep db table name')
-@click.argument('command')	
+@click.argument('command')
 def cli(dbname, sitrepurl, sitreptable, sitrep111url, sitrep111table, command):
-	display = click.echo
-	conn = sqlite3.connect(dbname)
-	display('Using SQLite3 database: {}'.format(dbname))
-	if command == 'collect':
-		links = links_winter_sitrep_2017_18()
-		if sitrepurl is None:
-			linktext,sitrepurl = get_url_winter_sitrep_2017_18('winter_sitrep', links)
-		if sitrep111url is None:
-			linktext,sitrep111url = get_url_winter_sitrep_2017_18('winter_sitrep_nhs111', links)
-			
-		if sitrepurl is not None:
-			droptable(conn,sitreptable)
-			sqlise_sitrep(sitrepurl, conn, sitreptable)
-		if sitrep111url is not None:
-			droptable(conn,sitrep111table)
-			sqlise_sitrep_nhs111(sitrep111url, conn, sitrep111table)
-	
+    display = click.echo
+    conn = sqlite3.connect(dbname)
+    display('\nUsing SQLite3 database: {}'.format(dbname))
+    if command == 'collect':
+        links = links_winter_sitrep_2017_18()
+        if sitrepurl is None:
+            linktext,sitrepurl = get_url_winter_sitrep_2017_18('winter_sitrep', links)
+        if sitrep111url is None:
+            linktext,sitrep111url = get_url_winter_sitrep_2017_18('winter_sitrep_nhs111', links)
+
+        if sitrepurl is not None:
+            droptable(conn,sitreptable)
+            sqlise_sitrep(sitrepurl, conn, sitreptable)
+        if sitrep111url is not None:
+            droptable(conn,sitrep111table)
+            sqlise_sitrep_nhs111(sitrep111url, conn, sitrep111table)
+
 
