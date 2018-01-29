@@ -34,7 +34,7 @@ def DailySR_parse(xl,sheet,skiprows=13,header=None):
     cols=[]
     
     #Drop England row and possible blank row if it hasn't been dropped already
-    dfx.drop([2,3],inplace=True, errors='ignore')
+    #dfx.drop([2,3],inplace=True, errors='ignore')
     
     if xlclass[sheet]==0:
         dfx.dropna(how='all',axis=1,inplace=True)
@@ -84,6 +84,7 @@ def DailySR_parse(xl,sheet,skiprows=13,header=None):
         #Cast value to numeric
         dfx['value'] = pd.to_numeric(dfx['value'],errors='coerce')
         dfx['Report']=sheet
+    dfx.dropna(subset=['Name'],inplace=True)
     return dfx
     
 
@@ -94,7 +95,7 @@ def dailySR_NHS111_parse(xl,sheet,skiprows=12,header=None):
     dfx.iloc[:2]=dfx.iloc[:2].fillna(method='ffill',axis='index')
     dfx.iloc[:1]=dfx.iloc[:1].fillna(method='ffill',axis='columns')
     dfx.columns=pd.MultiIndex.from_arrays(dfx.iloc[:2].values, names=['Category', 'Date'])
-    dfx.drop([0,1,2],inplace=True)
+    dfx.drop([0,1],inplace=True)
     dfx['Report'] = sheet
     dfx.set_index([('Region','Region'),('Code','Code'),
                    ('NHS 111 area name','NHS 111 area name'), 'Report'],inplace=True)
@@ -105,6 +106,7 @@ def dailySR_NHS111_parse(xl,sheet,skiprows=12,header=None):
                        ('NHS 111 area name', 'NHS 111 area name'):'NHS 111 area name'}, inplace=True)
     
     dfx['value'] = pd.to_numeric(dfx['value'],errors='coerce')
+    #dfx = dfx.dropna(subset=['NHS 111 area name'])
     return dfx
     
 def get_report(xl,sheet):
